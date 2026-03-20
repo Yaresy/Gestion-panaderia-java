@@ -1,0 +1,140 @@
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+
+interface Vendible {                                //Interfaz
+    double calcularPrecioVenta();                   //Le da a los productos la capacidad de tener un precio
+}
+
+abstract class Producto implements Vendible {            //Clase base abstracta
+    protected String nombre;                            //Atributos protegidos
+    protected String ingredientes;
+
+    public Producto (String nombre, String ingredientes) {
+        this.nombre = nombre;
+        this.ingredientes = ingredientes;
+    }
+    public abstract String preparar();                 //Método abstracto--Polimorfismo
+
+    public String mostrarDetalles() {                   //Método común
+        return "Producto: " + nombre + "\nIngredientes: " + ingredientes;
+    }
+    public String getNombre() {
+        return nombre;
+    }
+}
+
+class Pastel extends Producto {                 //Clase derivada 1--Subclase
+    private String saborCobertura;              // Atributo exclusivo
+
+    public Pastel(String nombre, String ingredientes, String saborCobertura) {
+        super(nombre, ingredientes);          // Llama al constructor de la clase base
+        this.saborCobertura = saborCobertura;
+    }
+
+    @Override
+    public String preparar() {
+        return "Preparación: Batir la mezcla, verter en molde, hornear a 180°C por 45 min, dejar enfriar y decorar con " + saborCobertura + ".";
+    }
+
+    @Override
+    public double calcularPrecioVenta() {
+        return 400.00;                          //Precio del pastel
+    }
+
+    @Override
+    public String mostrarDetalles() {           // Sobrescribe el método de la clase base
+        return super.mostrarDetalles() + "\nCobertura: " + saborCobertura + "\nPrecio: $" + calcularPrecioVenta();
+    }
+}
+
+class PanDulce extends Producto {               //Clase derivada 2--Subclase
+    private boolean tieneRelleno;               // Atributo exclusivo
+
+    public PanDulce(String nombre, String ingredientes, boolean tieneRelleno) {
+        super(nombre, ingredientes);
+        this.tieneRelleno = tieneRelleno;
+    }
+
+    @Override
+    public String preparar() {
+        return "Preparación: Amasar, darle forma, dejar fermentar y hornear hasta que dore.";
+    }
+
+    @Override
+    public double calcularPrecioVenta() {
+        return 16.00;                           //Precio por pieza
+    }
+
+    @Override
+    public String mostrarDetalles() {
+        String relleno = tieneRelleno ? "Sí" : "No";
+        return super.mostrarDetalles() + "\n¿Tiene relleno?: " + relleno + "\nPrecio: $" + calcularPrecioVenta();
+    }
+}
+
+public class Panaderia4 {                           //Programa principal
+    private ArrayList<Producto> inventario;         //Lista de la clase base Producto
+
+    public Panaderia4() {
+        inventario = new ArrayList<>();
+    }
+
+    public void agregarProducto(Producto p) {
+        inventario.add(p);
+    }
+
+    public static void main(String[] args) {         //main
+        Panaderia4 miPanaderia = new Panaderia4();
+        //Instanciación de objetos de las subclases
+        miPanaderia.agregarProducto(new Pastel("Pastel de fresa", "Harina, leche, huevos, mantequilla, fresa", "Crema batida de fresa"));
+        miPanaderia.agregarProducto(new Pastel("Pastel de chocolate", "Harina, leche, huevos, mantequilla, chocolate", "Ganache oscuro"));
+        miPanaderia.agregarProducto(new PanDulce("Concha de vainilla", "Harina, azúcar, manteca, huevo, vainilla", false));
+        miPanaderia.agregarProducto(new PanDulce("Empanada", "Harina, azúcar, manteca, piña", true));
+        //Interfaz gráfica
+        JFrame ventana = new JFrame("Sistema de Gestión de Inventario - Mi Panadería 👩🏽‍🍳🥐");
+        ventana.setSize(550, 450);
+        ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        ventana.setLayout(new BorderLayout());
+
+        JTextArea areaTexto = new JTextArea();
+        areaTexto.setEditable(false);
+        areaTexto.setFont(new Font("Monospaced", Font.PLAIN, 13));
+        JScrollPane scroll = new JScrollPane(areaTexto);
+
+        JPanel panelBotones = new JPanel();
+        JButton btnInventario = new JButton("Ver inventario");
+        JButton btnPreparar = new JButton("Modo de preparación");
+
+        panelBotones.add(btnInventario);
+        panelBotones.add(btnPreparar);
+
+        btnInventario.addActionListener(e -> {
+            areaTexto.setText("--- Inventario Actual ---\n\n");
+            for (Producto p : miPanaderia.inventario) {
+                areaTexto.append(p.mostrarDetalles() + "\n\n");
+                areaTexto.append("------------------------------------------\n\n");
+            }
+        });
+
+        btnPreparar.addActionListener(e -> {
+            String buscar = JOptionPane.showInputDialog("Escribe el nombre del producto para ver su preparación:");
+            if (buscar != null) {
+                areaTexto.setText("");
+                for (Producto p : miPanaderia.inventario) {
+                    if (p.getNombre().equalsIgnoreCase(buscar.trim())) {
+                        areaTexto.setText("--- Receta de: " + p.getNombre() + " encontrada ---\n\n");
+                        areaTexto.append(p.preparar() + "\n");                    //Se ejecuta el método abstracto implementado en cada clase
+                        return;
+                    }
+                }
+                areaTexto.setText("No se encontró el producto en el inventario.");
+            }
+        });
+
+        ventana.add(panelBotones, BorderLayout.NORTH);
+        ventana.add(scroll, BorderLayout.CENTER);
+        ventana.setLocationRelativeTo(null);
+        ventana.setVisible(true);
+    }
+}
